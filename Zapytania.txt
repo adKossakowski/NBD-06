@@ -1,0 +1,76 @@
+// Zad 1
+
+MATCH (s:town { name: "Darjeeling" }), (t:peak { name: "Sandakphu" })
+MATCH path = AllShortestPaths((s)-[*]->(t))
+RETURN path
+
+// Zadanie 2
+
+MATCH (s:town { name: "Darjeeling" }), (t:peak { name: "Sandakphu" })
+MATCH path = AllShortestPaths((s)-[*]->(t))  WHERE ALL (r IN relationships(path) WHERE r.winter = "true")
+RETURN path
+
+// Zadanie 3
+
+MATCH path = (s:town { name: "Darjeeling" })-[rel*]->(t:peak { name: "Sandakphu" })
+RETURN path, REDUCE(d = 0, r IN rel | d + r.distance) AS dist
+ORDER BY dist
+
+// Zadanie 4
+
+MATCH (a:Airport)<-[:ORIGIN]-(f:Flight)
+WITH a, count(f) as flights
+RETURN a, flights
+ORDER BY flights
+
+// Zadanie 5
+
+MATCH p = (s:Airport { name:"LAX" })<-[r1:ORIGIN]-(:Flight)-[r2:ORIGIN|DESTINATION*..5]->(t:Airport)
+WHERE REDUCE(acc = 0, n IN [x IN NODES(p) WHERE 'Flight' IN LABELS(x)] |
+  acc + [(n)<-[:ASSIGN]-(ticket) | ticket.price][0]
+  ) < 3000
+RETURN p
+
+// Zadanie 6
+
+MATCH p = (origin:Airport { name:"LAX" })<-[r1:ORIGIN]-(:Flight)-[r2:ORIGIN|DESTINATION*]->(destination:Airport {name: "DAY"})
+RETURN p ?? nie ma takich połaczeń
+
+MATCH p = (s:Airport { name:"LAX" })<-[r1:ORIGIN]-(:Flight)-[r2:ORIGIN|DESTINATION*]->(t:Airport {name: "DAY"})
+WITH p, REDUCE(acc = 0, n IN [x IN NODES(p) WHERE 'Flight' IN LABELS(x)] |
+  acc + [(n)<-[:ASSIGN]-(ticket) | ticket.price][0]
+  ) as price
+RETURN p, price
+ORDER BY price
+
+// Zadanie 7
+
+MATCH p = (s:Airport { name:"LAX" })<-[r1:ORIGIN]-(:Flight)-[r2:ORIGIN|DESTINATION*]->(t:Airport {name: "DAY"})
+WITH p, REDUCE(acc = 0, n IN [x IN NODES(p) WHERE 'Flight' IN LABELS(x)] |
+  acc + [(n)<-[:ASSIGN]-(ticket) | ticket.price][0]
+  ) as price
+RETURN p, price
+ORDER BY price ASC LIMIT 1
+
+// Zadanie 8
+
+MATCH p = (s:Airport { name:"LAX" })<-[r1:ORIGIN]-(:Flight)-[r2:ORIGIN|DESTINATION*]->(t:Airport {name: "DAY"})
+WITH p, REDUCE(acc = 0, n IN [x IN NODES(p) WHERE 'Flight' IN LABELS(x)] |
+  acc + [(n)<-[:ASSIGN]-(ticket {class: 'business'}) | ticket.price][0]
+  ) as price
+RETURN p, price
+ORDER BY price ASC LIMIT 1
+
+// Zadanie 9
+
+
+
+// Zadanie 10
+
+MATCH p = (a1:Airport)<-[r1:ORIGIN]-(f1:Flight)-[r2:DESTINATION]->(a2:Airport)<-[r3:ORIGIN]-(f2:Flight)-[r4:DESTINATION]->(a3:Airport)
+WHERE not(a1=a2) AND not(a1=a3) AND not(a2=a3)
+WITH p, REDUCE(acc = 0, n IN [x IN NODES(p) WHERE 'Flight' IN LABELS(x)] |
+  acc + [(n)<-[:ASSIGN]-(ticket) | ticket.price][0]
+  ) as price
+RETURN p, price
+ORDER BY price ASC LIMIT 1
